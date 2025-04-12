@@ -88,7 +88,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           builder: (context) => AddEditPatientScreen(patient: patient),
                         ),
                       ).then((_) {
-                        context.read<PatientBloc>().add(PatientFetchOne(widget.patientId));
+                        if(context.mounted) context.read<PatientBloc>().add(PatientFetchOne(widget.patientId));
                         _loadRecords();
                       });
                     },

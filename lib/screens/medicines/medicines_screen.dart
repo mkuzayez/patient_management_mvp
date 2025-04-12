@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/blocs/medicine/medicine_bloc.dart';
 import 'package:patient_management_app/blocs/medicine/medicine_event.dart';
 import 'package:patient_management_app/blocs/medicine/medicine_state.dart';
-import 'package:patient_management_app/blocs/base_state.dart';
-import 'package:patient_management_app/models/medicine.dart';
 import 'package:patient_management_app/screens/medicines/add_edit_medicine_screen.dart';
 import 'package:patient_management_app/widgets/medicine_card.dart';
 
@@ -29,7 +28,7 @@ class _MedicinesScreenContent extends StatefulWidget {
 
 class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
   String _searchQuery = '';
-  
+
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -38,7 +37,7 @@ class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,9 +76,7 @@ class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
                     : state.medicines.isEmpty
                         ? Center(
                             child: Text(
-                              _searchQuery.isEmpty
-                                  ? 'No medicines found'
-                                  : 'No medicines match "$_searchQuery"',
+                              _searchQuery.isEmpty ? 'No medicines found' : 'No medicines match "$_searchQuery"',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           )
@@ -100,7 +97,7 @@ class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
                                         builder: (context) => AddEditMedicineScreen(medicine: medicine),
                                       ),
                                     ).then((_) {
-                                      context.read<MedicineBloc>().add(const MedicineFetchAll());
+                                      if(context.mounted)  context.read<MedicineBloc>().add(const MedicineFetchAll());
                                     });
                                   },
                                 );
@@ -120,7 +117,7 @@ class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
               builder: (context) => const AddEditMedicineScreen(),
             ),
           ).then((_) {
-            context.read<MedicineBloc>().add(const MedicineFetchAll());
+            if(context.mounted)  context.read<MedicineBloc>().add(const MedicineFetchAll());
           });
         },
         child: const Icon(Icons.add),

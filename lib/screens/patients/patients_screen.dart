@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/blocs/patient/patient_bloc.dart';
 import 'package:patient_management_app/blocs/patient/patient_event.dart';
 import 'package:patient_management_app/blocs/patient/patient_state.dart';
-import 'package:patient_management_app/blocs/base_state.dart';
-import 'package:patient_management_app/models/patient.dart';
-import 'package:patient_management_app/screens/patients/patient_detail_screen.dart';
 import 'package:patient_management_app/screens/patients/add_edit_patient_screen.dart';
+import 'package:patient_management_app/screens/patients/patient_detail_screen.dart';
 import 'package:patient_management_app/widgets/patient_card.dart';
 
 class PatientsScreen extends StatelessWidget {
@@ -30,7 +29,7 @@ class _PatientsScreenContent extends StatefulWidget {
 
 class _PatientsScreenContentState extends State<_PatientsScreenContent> {
   String _searchQuery = '';
-  
+
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -39,7 +38,7 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,9 +77,7 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
                     : state.patients.isEmpty
                         ? Center(
                             child: Text(
-                              _searchQuery.isEmpty
-                                  ? 'No patients found'
-                                  : 'No patients match "$_searchQuery"',
+                              _searchQuery.isEmpty ? 'No patients found' : 'No patients match "$_searchQuery"',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           )
@@ -101,7 +98,7 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
                                         builder: (context) => PatientDetailScreen(patientId: patient.id!),
                                       ),
                                     ).then((_) {
-                                      context.read<PatientBloc>().add(const PatientFetchAll());
+                                      if (context.mounted) context.read<PatientBloc>().add(const PatientFetchAll());
                                     });
                                   },
                                 );
@@ -121,7 +118,7 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
               builder: (context) => const AddEditPatientScreen(),
             ),
           ).then((_) {
-            context.read<PatientBloc>().add(const PatientFetchAll());
+            if(context.mounted) context.read<PatientBloc>().add(const PatientFetchAll());
           });
         },
         child: const Icon(Icons.add),

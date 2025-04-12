@@ -1,4 +1,4 @@
-import 'package:patient_management_app/models/medicine.dart';
+
 
 class PrescribedMedicine {
   final int? id;

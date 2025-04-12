@@ -1,4 +1,3 @@
-import 'package:patient_management_app/models/patient.dart';
 import 'package:patient_management_app/models/prescribed_medicine.dart';
 
 class Record {
@@ -25,9 +24,7 @@ class Record {
   factory Record.fromJson(Map<String, dynamic> json) {
     List<PrescribedMedicine> medicines = [];
     if (json['prescribed_medicines'] != null) {
-      medicines = (json['prescribed_medicines'] as List)
-          .map((medicine) => PrescribedMedicine.fromJson(medicine))
-          .toList();
+      medicines = (json['prescribed_medicines'] as List).map((medicine) => PrescribedMedicine.fromJson(medicine)).toList();
     }
 
     return Record(

@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/blocs/record/record_bloc.dart';
 import 'package:patient_management_app/blocs/record/record_event.dart';
 import 'package:patient_management_app/blocs/record/record_state.dart';
-import 'package:patient_management_app/blocs/base_state.dart';
-import 'package:patient_management_app/models/record.dart';
 import 'package:patient_management_app/screens/records/add_record_screen.dart';
 import 'package:patient_management_app/screens/records/record_detail_screen.dart';
 
@@ -36,7 +35,7 @@ class _RecordsScreenContentState extends State<_RecordsScreenContent> {
       ),
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,11 +48,11 @@ class _RecordsScreenContentState extends State<_RecordsScreenContent> {
         builder: (context, state) {
           final isLoading = state.status == Status.loading;
           final records = state.records;
-          
+
           if (isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           if (records.isEmpty) {
             return Center(
               child: Column(
@@ -69,7 +68,7 @@ class _RecordsScreenContentState extends State<_RecordsScreenContent> {
                           builder: (context) => const AddRecordScreen(),
                         ),
                       ).then((_) {
-                        context.read<RecordBloc>().add(const RecordFetchAll());
+                        if(context.mounted) context.read<RecordBloc>().add(const RecordFetchAll());
                       });
                     },
                     child: const Text('Add New Record'),
@@ -78,7 +77,7 @@ class _RecordsScreenContentState extends State<_RecordsScreenContent> {
               ),
             );
           }
-          
+
           return RefreshIndicator(
             onRefresh: () async {
               context.read<RecordBloc>().add(const RecordFetchAll());
@@ -102,7 +101,7 @@ class _RecordsScreenContentState extends State<_RecordsScreenContent> {
                           builder: (context) => RecordDetailScreen(recordId: record.id!),
                         ),
                       ).then((_) {
-                        context.read<RecordBloc>().add(const RecordFetchAll());
+                        if(context.mounted) context.read<RecordBloc>().add(const RecordFetchAll());
                       });
                     },
                   ),
@@ -120,7 +119,7 @@ class _RecordsScreenContentState extends State<_RecordsScreenContent> {
               builder: (context) => const AddRecordScreen(),
             ),
           ).then((_) {
-            context.read<RecordBloc>().add(const RecordFetchAll());
+            if(context.mounted)  context.read<RecordBloc>().add(const RecordFetchAll());
           });
         },
         child: const Icon(Icons.add),

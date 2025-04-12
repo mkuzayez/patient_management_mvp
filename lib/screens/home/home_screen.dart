@@ -43,7 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppConstants.appName),
+        title: const Text(AppConstants.appName),
       ),
       body: widget.child,
       bottomNavigationBar: BottomNavigationBar(

@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:patient_management_app/blocs/patient/patient_bloc.dart';
-import 'package:patient_management_app/blocs/patient/patient_event.dart';
-import 'package:patient_management_app/blocs/patient/patient_state.dart';
+import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/blocs/medicine/medicine_bloc.dart';
 import 'package:patient_management_app/blocs/medicine/medicine_event.dart';
 import 'package:patient_management_app/blocs/medicine/medicine_state.dart';
+import 'package:patient_management_app/blocs/patient/patient_bloc.dart';
+import 'package:patient_management_app/blocs/patient/patient_event.dart';
+import 'package:patient_management_app/blocs/patient/patient_state.dart';
 import 'package:patient_management_app/blocs/record/record_bloc.dart';
 import 'package:patient_management_app/blocs/record/record_event.dart';
 import 'package:patient_management_app/blocs/record/record_state.dart';
-import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/config/constants.dart';
-import 'package:patient_management_app/models/record.dart';
-import 'package:patient_management_app/models/patient.dart';
 import 'package:patient_management_app/models/medicine.dart';
+import 'package:patient_management_app/models/patient.dart';
 import 'package:patient_management_app/models/prescribed_medicine.dart';
 import 'package:patient_management_app/services/prescribed_medicine_service.dart';
 
@@ -29,14 +28,14 @@ class AddRecordScreen extends StatefulWidget {
 class _AddRecordScreenState extends State<AddRecordScreen> {
   final _formKey = GlobalKey<FormState>();
   final PrescribedMedicineService _prescribedMedicineService = PrescribedMedicineService();
-  
-  List<Map<String, dynamic>> _selectedMedicines = [];
-  
+
+  final List<Map<String, dynamic>> _selectedMedicines = [];
+
   int? _selectedPatientId;
   String _doctorSpecialization = AppConstants.doctorSpecializations[0];
   final TextEditingController _vitalSignsController = TextEditingController();
   final TextEditingController _issuedDateController = TextEditingController();
-  
+
   bool _isSaving = false;
   DateTime _selectedDate = DateTime.now();
 
@@ -61,7 +60,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
-    
+
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
@@ -81,7 +80,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
         Medicine? selectedMedicine;
         String dose = '';
         int quantity = 1;
-        
+
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
@@ -208,12 +207,12 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
 
       // Dispatch event to create record
       context.read<RecordBloc>().add(RecordCreate(recordData));
-      
+
       // Wait for the record to be created before proceeding
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       // Get the created record
-      final recordState = context.read<RecordBloc>().state;
+      final recordState = context.mounted ? context.read<RecordBloc>().state : const RecordState();
       if (recordState.status == Status.success && recordState.selectedRecord != null) {
         // Create prescribed medicines
         for (var medicineData in _selectedMedicines) {
@@ -230,7 +229,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
           await _prescribedMedicineService.createPrescribedMedicine(prescribedMedicine);
         }
 
-        if (mounted) {
+        if(context.mounted)  {
           Navigator.pop(context);
         }
       } else {
@@ -290,16 +289,15 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                 builder: (context, patientState) {
                   return BlocBuilder<MedicineBloc, MedicineState>(
                     builder: (context, medicineState) {
-                      final isLoading = patientState.status == Status.loading || 
-                                       medicineState.status == Status.loading;
-                      
+                      final isLoading = patientState.status == Status.loading || medicineState.status == Status.loading;
+
                       if (isLoading) {
                         return const Center(child: CircularProgressIndicator());
                       }
-                      
+
                       final patients = patientState.patients;
                       final medicines = medicineState.medicines;
-                      
+
                       return SingleChildScrollView(
                         padding: const EdgeInsets.all(16.0),
                         child: Form(
@@ -412,7 +410,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                       itemBuilder: (context, index) {
                                         final medicineData = _selectedMedicines[index];
                                         final medicine = medicineData['medicine'] as Medicine;
-                                        
+
                                         return Card(
                                           margin: const EdgeInsets.only(bottom: 8),
                                           child: ListTile(

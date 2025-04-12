@@ -1,17 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:patient_management_app/blocs/record/record_bloc.dart';
-import 'package:patient_management_app/blocs/record/record_event.dart';
-import 'package:patient_management_app/blocs/record/record_state.dart';
+import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/blocs/patient/patient_bloc.dart';
 import 'package:patient_management_app/blocs/patient/patient_event.dart';
 import 'package:patient_management_app/blocs/patient/patient_state.dart';
-import 'package:patient_management_app/blocs/base_state.dart';
-import 'package:patient_management_app/config/constants.dart';
-import 'package:patient_management_app/models/record.dart';
-import 'package:patient_management_app/models/patient.dart';
-import 'package:patient_management_app/services/prescribed_medicine_service.dart';
+import 'package:patient_management_app/blocs/record/record_bloc.dart';
+import 'package:patient_management_app/blocs/record/record_event.dart';
+import 'package:patient_management_app/blocs/record/record_state.dart';
 import 'package:patient_management_app/models/prescribed_medicine.dart';
+import 'package:patient_management_app/models/record.dart';
+import 'package:patient_management_app/services/prescribed_medicine_service.dart';
 
 class RecordDetailScreen extends StatefulWidget {
   final int recordId;
@@ -24,7 +22,7 @@ class RecordDetailScreen extends StatefulWidget {
 
 class _RecordDetailScreenState extends State<RecordDetailScreen> {
   final PrescribedMedicineService _prescribedMedicineService = PrescribedMedicineService();
-  
+
   List<PrescribedMedicine> _prescribedMedicines = [];
   bool _isLoadingMedicines = true;
 
@@ -78,7 +76,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
           if (state.status == Status.failure && state.failure != null) {
             _showErrorSnackBar(state.failure!.message);
           }
-          
+
           // When record is loaded, fetch the patient details
           if (state.status == Status.success && state.selectedRecord != null) {
             context.read<PatientBloc>().add(PatientFetchOne(state.selectedRecord!.patientId));
@@ -87,7 +85,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
         builder: (context, recordState) {
           final isLoading = recordState.status == Status.loading;
           final record = recordState.selectedRecord;
-          
+
           return Scaffold(
             appBar: AppBar(
               title: Text(isLoading ? 'Record Details' : 'Record: ${record?.issuedDate ?? ""}'),
@@ -146,8 +144,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                   ),
                   _buildInfoRow('Doctor', record.doctorSpecialization),
                   _buildInfoRow('Date', record.issuedDate),
-                  if (record.vitalSigns.isNotEmpty)
-                    _buildInfoRow('Vital Signs', record.vitalSigns),
+                  if (record.vitalSigns.isNotEmpty) _buildInfoRow('Vital Signs', record.vitalSigns),
                   _buildInfoRow('Created', record.createdAt),
                 ],
               ),

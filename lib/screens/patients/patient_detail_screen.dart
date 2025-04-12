@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:patient_management_app/blocs/patient/patient_bloc.dart';
+import 'package:patient_management_app/blocs/patient/patient_event.dart';
+import 'package:patient_management_app/blocs/patient/patient_state.dart';
+import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/models/patient.dart';
 import 'package:patient_management_app/models/record.dart';
-import 'package:patient_management_app/services/patient_service.dart';
 import 'package:patient_management_app/services/record_service.dart';
 import 'package:patient_management_app/screens/patients/add_edit_patient_screen.dart';
 import 'package:patient_management_app/screens/records/add_record_screen.dart';
@@ -17,38 +21,15 @@ class PatientDetailScreen extends StatefulWidget {
 }
 
 class _PatientDetailScreenState extends State<PatientDetailScreen> {
-  final PatientService _patientService = PatientService();
   final RecordService _recordService = RecordService();
   
-  Patient? _patient;
   List<Record> _records = [];
-  bool _isLoading = true;
   bool _isLoadingRecords = true;
 
   @override
   void initState() {
     super.initState();
-    _loadPatient();
-  }
-
-  Future<void> _loadPatient() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final patient = await _patientService.getPatient(widget.patientId);
-      setState(() {
-        _patient = patient;
-        _isLoading = false;
-      });
-      _loadRecords();
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      _showErrorSnackBar('Failed to load patient: ${e.toString()}');
-    }
+    _loadRecords();
   }
 
   Future<void> _loadRecords() async {
@@ -81,65 +62,85 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isLoading ? 'Patient Details' : _patient!.fullName),
-        actions: [
-          if (!_isLoading)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddEditPatientScreen(patient: _patient),
-                  ),
-                ).then((_) => _loadPatient());
-              },
-            ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildPatientInfo(),
-                  const Divider(height: 32),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Medical Records',
-                          style: Theme.of(context).textTheme.titleLarge,
+    return BlocProvider(
+      create: (context) => PatientBloc()..add(PatientFetchOne(widget.patientId)),
+      child: BlocConsumer<PatientBloc, PatientState>(
+        listener: (context, state) {
+          if (state.status == Status.failure && state.failure != null) {
+            _showErrorSnackBar(state.failure!.message);
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state.status == Status.loading;
+          final patient = state.selectedPatient;
+          
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(isLoading ? 'Patient Details' : patient?.fullName ?? 'Patient Details'),
+              actions: [
+                if (!isLoading && patient != null)
+                  IconButton(
+                    icon: const Icon(Icons.edit),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddEditPatientScreen(patient: patient),
                         ),
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('Add Record'),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddRecordScreen(patientId: widget.patientId),
+                      ).then((_) {
+                        context.read<PatientBloc>().add(PatientFetchOne(widget.patientId));
+                        _loadRecords();
+                      });
+                    },
+                  ),
+              ],
+            ),
+            body: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : patient == null
+                    ? const Center(child: Text('Patient not found'))
+                    : SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildPatientInfo(context, patient),
+                            const Divider(height: 32),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Medical Records',
+                                    style: Theme.of(context).textTheme.titleLarge,
+                                  ),
+                                  ElevatedButton.icon(
+                                    icon: const Icon(Icons.add),
+                                    label: const Text('Add Record'),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AddRecordScreen(patientId: widget.patientId),
+                                        ),
+                                      ).then((_) => _loadRecords());
+                                    },
+                                  ),
+                                ],
                               ),
-                            ).then((_) => _loadRecords());
-                          },
+                            ),
+                            const SizedBox(height: 8),
+                            _buildRecordsList(),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _buildRecordsList(),
-                ],
-              ),
-            ),
+                      ),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildPatientInfo() {
+  Widget _buildPatientInfo(BuildContext context, Patient patient) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -163,25 +164,25 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: _patient!.status == 'active' ? Colors.green : Colors.grey,
+                          color: patient.status == 'active' ? Colors.green : Colors.grey,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          _patient!.status,
+                          patient.status,
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildInfoRow('Age', '${_patient!.age} years'),
-                  _buildInfoRow('Gender', _patient!.gender),
-                  _buildInfoRow('Area', _patient!.area),
-                  _buildInfoRow('Mobile', _patient!.mobileNumber),
-                  if (_patient!.pastIllnesses.isNotEmpty)
-                    _buildInfoRow('Past Illnesses', _patient!.pastIllnesses),
-                  _buildInfoRow('Created', _patient!.createdAt),
-                  _buildInfoRow('Last Updated', _patient!.updatedAt),
+                  _buildInfoRow('Age', '${patient.age} years'),
+                  _buildInfoRow('Gender', patient.gender),
+                  _buildInfoRow('Area', patient.area),
+                  _buildInfoRow('Mobile', patient.mobileNumber),
+                  if (patient.pastIllnesses.isNotEmpty)
+                    _buildInfoRow('Past Illnesses', patient.pastIllnesses),
+                  _buildInfoRow('Created', patient.createdAt),
+                  _buildInfoRow('Last Updated', patient.updatedAt),
                 ],
               ),
             ),

@@ -1,46 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:patient_management_app/blocs/record/record_bloc.dart';
+import 'package:patient_management_app/blocs/record/record_event.dart';
+import 'package:patient_management_app/blocs/record/record_state.dart';
+import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/models/record.dart';
-import 'package:patient_management_app/services/record_service.dart';
 import 'package:patient_management_app/screens/records/add_record_screen.dart';
 import 'package:patient_management_app/screens/records/record_detail_screen.dart';
 
-class RecordsScreen extends StatefulWidget {
+class RecordsScreen extends StatelessWidget {
   const RecordsScreen({super.key});
 
   @override
-  State<RecordsScreen> createState() => _RecordsScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => RecordBloc()..add(const RecordFetchAll()),
+      child: const _RecordsScreenContent(),
+    );
+  }
 }
 
-class _RecordsScreenState extends State<RecordsScreen> {
-  final RecordService _recordService = RecordService();
-  List<Record> _records = [];
-  bool _isLoading = true;
-  
+class _RecordsScreenContent extends StatefulWidget {
+  const _RecordsScreenContent();
+
   @override
-  void initState() {
-    super.initState();
-    _loadRecords();
-  }
-  
-  Future<void> _loadRecords() async {
-    setState(() {
-      _isLoading = true;
-    });
-    
-    try {
-      final records = await _recordService.getAllRecords();
-      setState(() {
-        _records = records;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      _showErrorSnackBar('Failed to load records: ${e.toString()}');
-    }
-  }
-  
+  State<_RecordsScreenContent> createState() => _RecordsScreenContentState();
+}
+
+class _RecordsScreenContentState extends State<_RecordsScreenContent> {
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -53,56 +40,78 @@ class _RecordsScreenState extends State<RecordsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _records.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('No medical records found'),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const AddRecordScreen(),
-                            ),
-                          ).then((_) => _loadRecords());
-                        },
-                        child: const Text('Add New Record'),
-                      ),
-                    ],
-                  ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadRecords,
-                  child: ListView.builder(
-                    itemCount: _records.length,
-                    itemBuilder: (context, index) {
-                      final record = _records[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: ListTile(
-                          title: Text('Patient ID: ${record.patientId}'),
-                          subtitle: Text(
-                            'Date: ${record.issuedDate} • Doctor: ${record.doctorSpecialization}',
-                          ),
-                          trailing: Text('Medicines: ${record.totalGivenMedicines}'),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => RecordDetailScreen(recordId: record.id!),
-                              ),
-                            ).then((_) => _loadRecords());
-                          },
+      body: BlocConsumer<RecordBloc, RecordState>(
+        listener: (context, state) {
+          if (state.status == Status.failure && state.failure != null) {
+            _showErrorSnackBar(state.failure!.message);
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state.status == Status.loading;
+          final records = state.records;
+          
+          if (isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (records.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('No medical records found'),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AddRecordScreen(),
                         ),
-                      );
+                      ).then((_) {
+                        context.read<RecordBloc>().add(const RecordFetchAll());
+                      });
+                    },
+                    child: const Text('Add New Record'),
+                  ),
+                ],
+              ),
+            );
+          }
+          
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<RecordBloc>().add(const RecordFetchAll());
+            },
+            child: ListView.builder(
+              itemCount: records.length,
+              itemBuilder: (context, index) {
+                final record = records[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    title: Text('Patient ID: ${record.patientId}'),
+                    subtitle: Text(
+                      'Date: ${record.issuedDate} • Doctor: ${record.doctorSpecialization}',
+                    ),
+                    trailing: Text('Medicines: ${record.totalGivenMedicines}'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => RecordDetailScreen(recordId: record.id!),
+                        ),
+                      ).then((_) {
+                        context.read<RecordBloc>().add(const RecordFetchAll());
+                      });
                     },
                   ),
-                ),
+                );
+              },
+            ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
@@ -110,7 +119,9 @@ class _RecordsScreenState extends State<RecordsScreen> {
             MaterialPageRoute(
               builder: (context) => const AddRecordScreen(),
             ),
-          ).then((_) => _loadRecords());
+          ).then((_) {
+            context.read<RecordBloc>().add(const RecordFetchAll());
+          });
         },
         child: const Icon(Icons.add),
       ),

@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:patient_management_app/blocs/record/record_bloc.dart';
+import 'package:patient_management_app/blocs/record/record_event.dart';
+import 'package:patient_management_app/blocs/record/record_state.dart';
+import 'package:patient_management_app/blocs/patient/patient_bloc.dart';
+import 'package:patient_management_app/blocs/patient/patient_event.dart';
+import 'package:patient_management_app/blocs/patient/patient_state.dart';
+import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/config/constants.dart';
 import 'package:patient_management_app/models/record.dart';
 import 'package:patient_management_app/models/patient.dart';
-import 'package:patient_management_app/services/record_service.dart';
-import 'package:patient_management_app/services/patient_service.dart';
 import 'package:patient_management_app/services/prescribed_medicine_service.dart';
 import 'package:patient_management_app/models/prescribed_medicine.dart';
 
@@ -17,52 +23,15 @@ class RecordDetailScreen extends StatefulWidget {
 }
 
 class _RecordDetailScreenState extends State<RecordDetailScreen> {
-  final RecordService _recordService = RecordService();
-  final PatientService _patientService = PatientService();
   final PrescribedMedicineService _prescribedMedicineService = PrescribedMedicineService();
   
-  Record? _record;
-  Patient? _patient;
   List<PrescribedMedicine> _prescribedMedicines = [];
-  bool _isLoading = true;
   bool _isLoadingMedicines = true;
 
   @override
   void initState() {
     super.initState();
-    _loadRecord();
-  }
-
-  Future<void> _loadRecord() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final record = await _recordService.getRecord(widget.recordId);
-      setState(() {
-        _record = record;
-        _isLoading = false;
-      });
-      _loadPatient(record.patientId);
-      _loadPrescribedMedicines(widget.recordId);
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      _showErrorSnackBar('Failed to load record: ${e.toString()}');
-    }
-  }
-
-  Future<void> _loadPatient(int patientId) async {
-    try {
-      final patient = await _patientService.getPatient(patientId);
-      setState(() {
-        _patient = patient;
-      });
-    } catch (e) {
-      _showErrorSnackBar('Failed to load patient: ${e.toString()}');
-    }
+    _loadPrescribedMedicines(widget.recordId);
   }
 
   Future<void> _loadPrescribedMedicines(int recordId) async {
@@ -95,34 +64,61 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(_isLoading ? 'Record Details' : 'Record: ${_record!.issuedDate}'),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildRecordInfo(),
-                  const Divider(height: 32),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Text(
-                      'Prescribed Medicines',
-                      style: Theme.of(context).textTheme.titleLarge,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => RecordBloc()..add(RecordFetchOne(widget.recordId)),
+        ),
+        BlocProvider(
+          create: (context) => PatientBloc(),
+        ),
+      ],
+      child: BlocConsumer<RecordBloc, RecordState>(
+        listener: (context, state) {
+          if (state.status == Status.failure && state.failure != null) {
+            _showErrorSnackBar(state.failure!.message);
+          }
+          
+          // When record is loaded, fetch the patient details
+          if (state.status == Status.success && state.selectedRecord != null) {
+            context.read<PatientBloc>().add(PatientFetchOne(state.selectedRecord!.patientId));
+          }
+        },
+        builder: (context, recordState) {
+          final isLoading = recordState.status == Status.loading;
+          final record = recordState.selectedRecord;
+          
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(isLoading ? 'Record Details' : 'Record: ${record?.issuedDate ?? ""}'),
+            ),
+            body: isLoading || record == null
+                ? const Center(child: CircularProgressIndicator())
+                : SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildRecordInfo(record),
+                        const Divider(height: 32),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            'Prescribed Medicines',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildPrescribedMedicinesList(),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  _buildPrescribedMedicinesList(),
-                ],
-              ),
-            ),
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildRecordInfo() {
+  Widget _buildRecordInfo(Record record) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -141,12 +137,18 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                         ),
                   ),
                   const SizedBox(height: 16),
-                  _buildInfoRow('Patient', _patient?.fullName ?? 'Loading...'),
-                  _buildInfoRow('Doctor', _record!.doctorSpecialization),
-                  _buildInfoRow('Date', _record!.issuedDate),
-                  if (_record!.vitalSigns.isNotEmpty)
-                    _buildInfoRow('Vital Signs', _record!.vitalSigns),
-                  _buildInfoRow('Created', _record!.createdAt),
+                  BlocBuilder<PatientBloc, PatientState>(
+                    builder: (context, patientState) {
+                      final patient = patientState.selectedPatient;
+                      final patientName = patient?.fullName ?? 'Loading...';
+                      return _buildInfoRow('Patient', patientName);
+                    },
+                  ),
+                  _buildInfoRow('Doctor', record.doctorSpecialization),
+                  _buildInfoRow('Date', record.issuedDate),
+                  if (record.vitalSigns.isNotEmpty)
+                    _buildInfoRow('Vital Signs', record.vitalSigns),
+                  _buildInfoRow('Created', record.createdAt),
                 ],
               ),
             ),

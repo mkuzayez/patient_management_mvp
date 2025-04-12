@@ -1,71 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:patient_management_app/blocs/medicine/medicine_bloc.dart';
+import 'package:patient_management_app/blocs/medicine/medicine_event.dart';
+import 'package:patient_management_app/blocs/medicine/medicine_state.dart';
+import 'package:patient_management_app/blocs/base_state.dart';
 import 'package:patient_management_app/models/medicine.dart';
-import 'package:patient_management_app/services/medicine_service.dart';
 import 'package:patient_management_app/screens/medicines/add_edit_medicine_screen.dart';
 import 'package:patient_management_app/widgets/medicine_card.dart';
 
-class MedicinesScreen extends StatefulWidget {
+class MedicinesScreen extends StatelessWidget {
   const MedicinesScreen({super.key});
 
   @override
-  State<MedicinesScreen> createState() => _MedicinesScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => MedicineBloc()..add(const MedicineFetchAll()),
+      child: const _MedicinesScreenContent(),
+    );
+  }
 }
 
-class _MedicinesScreenState extends State<MedicinesScreen> {
-  final MedicineService _medicineService = MedicineService();
-  List<Medicine> _medicines = [];
-  bool _isLoading = true;
-  String _searchQuery = '';
-  
+class _MedicinesScreenContent extends StatefulWidget {
+  const _MedicinesScreenContent();
+
   @override
-  void initState() {
-    super.initState();
-    _loadMedicines();
-  }
-  
-  Future<void> _loadMedicines() async {
-    setState(() {
-      _isLoading = true;
-    });
-    
-    try {
-      final medicines = await _medicineService.getAllMedicines();
-      setState(() {
-        _medicines = medicines;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      _showErrorSnackBar('Failed to load medicines: ${e.toString()}');
-    }
-  }
-  
-  Future<void> _searchMedicines(String query) async {
-    if (query.isEmpty) {
-      _loadMedicines();
-      return;
-    }
-    
-    setState(() {
-      _isLoading = true;
-      _searchQuery = query;
-    });
-    
-    try {
-      final medicines = await _medicineService.searchMedicines(query);
-      setState(() {
-        _medicines = medicines;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      _showErrorSnackBar('Search failed: ${e.toString()}');
-    }
-  }
+  State<_MedicinesScreenContent> createState() => _MedicinesScreenContentState();
+}
+
+class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
+  String _searchQuery = '';
   
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -79,55 +42,75 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              decoration: const InputDecoration(
-                labelText: 'Search Medicines',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+      body: BlocConsumer<MedicineBloc, MedicineState>(
+        listener: (context, state) {
+          if (state.status == Status.failure && state.failure != null) {
+            _showErrorSnackBar(state.failure!.message);
+          }
+        },
+        builder: (context, state) {
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Search Medicines',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                    if (value.isEmpty) {
+                      context.read<MedicineBloc>().add(const MedicineFetchAll());
+                    } else {
+                      context.read<MedicineBloc>().add(MedicineSearch(value));
+                    }
+                  },
+                ),
               ),
-              onChanged: (value) {
-                _searchMedicines(value);
-              },
-            ),
-          ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _medicines.isEmpty
-                    ? Center(
-                        child: Text(
-                          _searchQuery.isEmpty
-                              ? 'No medicines found'
-                              : 'No medicines match "$_searchQuery"',
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadMedicines,
-                        child: ListView.builder(
-                          itemCount: _medicines.length,
-                          itemBuilder: (context, index) {
-                            final medicine = _medicines[index];
-                            return MedicineCard(
-                              medicine: medicine,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AddEditMedicineScreen(medicine: medicine),
-                                  ),
-                                ).then((_) => _loadMedicines());
+              Expanded(
+                child: state.status == Status.loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : state.medicines.isEmpty
+                        ? Center(
+                            child: Text(
+                              _searchQuery.isEmpty
+                                  ? 'No medicines found'
+                                  : 'No medicines match "$_searchQuery"',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          )
+                        : RefreshIndicator(
+                            onRefresh: () async {
+                              context.read<MedicineBloc>().add(const MedicineFetchAll());
+                            },
+                            child: ListView.builder(
+                              itemCount: state.medicines.length,
+                              itemBuilder: (context, index) {
+                                final medicine = state.medicines[index];
+                                return MedicineCard(
+                                  medicine: medicine,
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AddEditMedicineScreen(medicine: medicine),
+                                      ),
+                                    ).then((_) {
+                                      context.read<MedicineBloc>().add(const MedicineFetchAll());
+                                    });
+                                  },
+                                );
                               },
-                            );
-                          },
-                        ),
-                      ),
-          ),
-        ],
+                            ),
+                          ),
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -136,7 +119,9 @@ class _MedicinesScreenState extends State<MedicinesScreen> {
             MaterialPageRoute(
               builder: (context) => const AddEditMedicineScreen(),
             ),
-          ).then((_) => _loadMedicines());
+          ).then((_) {
+            context.read<MedicineBloc>().add(const MedicineFetchAll());
+          });
         },
         child: const Icon(Icons.add),
       ),

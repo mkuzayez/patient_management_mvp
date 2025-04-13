@@ -54,7 +54,7 @@ class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
                   decoration: const InputDecoration(
-                    labelText: 'Search Medicines',
+                    labelText: 'البحث عن الدواء',
                     prefixIcon: Icon(Icons.search),
                     border: OutlineInputBorder(),
                   ),
@@ -76,7 +76,7 @@ class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
                     : state.medicines.isEmpty
                         ? Center(
                             child: Text(
-                              _searchQuery.isEmpty ? 'No medicines found' : 'No medicines match "$_searchQuery"',
+                              _searchQuery.isEmpty ? 'لم يتم العثور على أي أدوية' : 'لا توجد أدوية تطابق "$_searchQuery"',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           )
@@ -97,7 +97,7 @@ class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
                                         builder: (context) => AddEditMedicineScreen(medicine: medicine),
                                       ),
                                     ).then((_) {
-                                      if(context.mounted)  context.read<MedicineBloc>().add(const MedicineFetchAll());
+                                      if (context.mounted) context.read<MedicineBloc>().add(const MedicineFetchAll());
                                     });
                                   },
                                 );
@@ -117,7 +117,7 @@ class _MedicinesScreenContentState extends State<_MedicinesScreenContent> {
               builder: (context) => const AddEditMedicineScreen(),
             ),
           ).then((_) {
-            if(context.mounted)  context.read<MedicineBloc>().add(const MedicineFetchAll());
+            if (context.mounted) context.read<MedicineBloc>().add(const MedicineFetchAll());
           });
         },
         child: const Icon(Icons.add),

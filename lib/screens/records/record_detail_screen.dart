@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:patient_management_app/blocs/base_state.dart';
@@ -47,7 +49,8 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
       setState(() {
         _isLoadingMedicines = false;
       });
-      _showErrorSnackBar('Failed to load prescribed medicines: ${e.toString()}');
+      _showErrorSnackBar('خطأ بتحميل الأدوية، يرجى المحاولة مجددًا');
+      log('Failed to load prescribed medicines: ${e.toString()}');
     }
   }
 
@@ -88,7 +91,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
 
           return Scaffold(
             appBar: AppBar(
-              title: Text(isLoading ? 'Record Details' : 'Record: ${record?.issuedDate ?? ""}'),
+              title: Text(isLoading ? 'تفاصيل السجل' : 'السجل: ${record?.issuedDate ?? ""}'),
             ),
             body: isLoading || record == null
                 ? const Center(child: CircularProgressIndicator())
@@ -101,7 +104,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0),
                           child: Text(
-                            'Prescribed Medicines',
+                            'الأدوية الموصوفة',
                             style: Theme.of(context).textTheme.titleLarge,
                           ),
                         ),
@@ -129,7 +132,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Record Information',
+                    'تفاصيل السجل',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -142,10 +145,10 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                       return _buildInfoRow('Patient', patientName);
                     },
                   ),
-                  _buildInfoRow('Doctor', record.doctorSpecialization),
-                  _buildInfoRow('Date', record.issuedDate),
-                  if (record.vitalSigns.isNotEmpty) _buildInfoRow('Vital Signs', record.vitalSigns),
-                  _buildInfoRow('Created', record.createdAt),
+                  _buildInfoRow('الطبيب', record.doctorSpecialization),
+                  _buildInfoRow('التاريخ', record.issuedDate),
+                  if (record.vitalSigns.isNotEmpty) _buildInfoRow('المؤشرات الحيوية', record.vitalSigns),
+                  _buildInfoRow('انشأت بتاريخ', record.createdAt),
                 ],
               ),
             ),
@@ -188,7 +191,7 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
       return const Padding(
         padding: EdgeInsets.all(16.0),
         child: Center(
-          child: Text('No medicines prescribed in this record.'),
+          child: Text('لا يوجد أدوية موصوفة بهذا السجل'),
         ),
       );
     }
@@ -217,18 +220,18 @@ class _RecordDetailScreenState extends State<RecordDetailScreen> {
                       ),
                     ),
                     Text(
-                      'Qty: ${medicine.quantity}',
+                      'الكمية: ${medicine.quantity}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text('Dose: ${medicine.dose}'),
+                Text('الجرعة: ${medicine.dose}'),
                 const SizedBox(height: 4),
-                Text('Price: \$${medicine.medicinePrice.toStringAsFixed(2)}'),
+                Text('السعر: \$${medicine.medicinePrice.toStringAsFixed(2)}'),
                 const SizedBox(height: 4),
                 Text(
-                  'Total: \$${(medicine.medicinePrice * medicine.quantity).toStringAsFixed(2)}',
+                  'المجموع: \$${(medicine.medicinePrice * medicine.quantity).toStringAsFixed(2)}',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],

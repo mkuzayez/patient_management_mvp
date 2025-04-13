@@ -50,7 +50,7 @@ class PatientCard extends StatelessWidget {
                 children: [
                   const Icon(Icons.person, size: 16, color: Colors.grey),
                   const SizedBox(width: 4),
-                  Text('${patient.age} years, ${patient.gender}'),
+                  Text('${patient.age} سنة, ${patient.gender}'),
                 ],
               ),
               const SizedBox(height: 4),
@@ -79,12 +79,12 @@ class PatientCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Records: ${patient.recordsCount}',
+                    'السجلات: ${patient.recordsCount}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   if (patient.lastVisit != null)
                     Text(
-                      'Last visit: ${patient.lastVisit}',
+                      'آخر زيارة: ${patient.lastVisit}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                 ],

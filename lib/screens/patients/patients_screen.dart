@@ -55,7 +55,7 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
                 padding: const EdgeInsets.all(16.0),
                 child: TextField(
                   decoration: const InputDecoration(
-                    labelText: 'Search Patients',
+                    labelText: 'البحث عن مريض',
                     prefixIcon: Icon(Icons.search),
                     border: OutlineInputBorder(),
                   ),
@@ -77,7 +77,7 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
                     : state.patients.isEmpty
                         ? Center(
                             child: Text(
-                              _searchQuery.isEmpty ? 'No patients found' : 'No patients match "$_searchQuery"',
+                              _searchQuery.isEmpty ? 'لا يوجد مرضى' : 'لا يوجد مرضى يطابقون "$_searchQuery"',
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           )
@@ -118,7 +118,7 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
               builder: (context) => const AddEditPatientScreen(),
             ),
           ).then((_) {
-            if(context.mounted) context.read<PatientBloc>().add(const PatientFetchAll());
+            if (context.mounted) context.read<PatientBloc>().add(const PatientFetchAll());
           });
         },
         child: const Icon(Icons.add),

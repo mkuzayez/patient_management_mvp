@@ -50,15 +50,15 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.people),
-            label: 'Patients',
+            label: 'المرضى',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.medication),
-            label: 'Medicines',
+            label: 'الأدوية',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.description),
-            label: 'Records',
+            label: 'السجلات',
           ),
         ],
         currentIndex: selectedIndex,

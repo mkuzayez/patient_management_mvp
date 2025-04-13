@@ -58,7 +58,7 @@ class _RecordsScreenContentState extends State<_RecordsScreenContent> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text('No medical records found'),
+                  const Text('لم يتم العثور على سجلات طبية'),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
@@ -71,7 +71,7 @@ class _RecordsScreenContentState extends State<_RecordsScreenContent> {
                         if(context.mounted) context.read<RecordBloc>().add(const RecordFetchAll());
                       });
                     },
-                    child: const Text('Add New Record'),
+                    child: const Text('إضافة سجل جديد'),
                   ),
                 ],
               ),
@@ -89,11 +89,11 @@ class _RecordsScreenContentState extends State<_RecordsScreenContent> {
                 return Card(
                   margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
-                    title: Text('Patient ID: ${record.patientId}'),
+                    title: Text('معرّف المريض: ${record.patientId}'),
                     subtitle: Text(
-                      'Date: ${record.issuedDate} • Doctor: ${record.doctorSpecialization}',
+                      'التاريخ: ${record.issuedDate} • الطبيب: ${record.doctorSpecialization}',
                     ),
-                    trailing: Text('Medicines: ${record.totalGivenMedicines}'),
+                    trailing: Text('الأدوية: ${record.totalGivenMedicines}'),
                     onTap: () {
                       Navigator.push(
                         context,

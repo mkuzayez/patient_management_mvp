@@ -15,25 +15,25 @@ class ApiConstants {
 
 class AppConstants {
   // App name
-  static const String appName = 'Patient Management';
+  static const String appName = 'إدارة المرضى';
   
   // Status options
-  static const List<String> patientStatusOptions = ['active', 'inactive'];
+  static const List<String> patientStatusOptions = ['فعال', 'غير فعال'];
   
   // Gender options
-  static const List<String> genderOptions = ['Male', 'Female', 'Other'];
+  static const List<String> genderOptions = ['ذكر', 'أنثى'];
   
   // Doctor specializations
   static const List<String> doctorSpecializations = [
-    'General Practitioner',
-    'Pediatrician',
-    'Cardiologist',
-    'Dermatologist',
-    'Neurologist',
-    'Orthopedist',
-    'Gynecologist',
-    'Ophthalmologist',
-    'Dentist',
-    'Other'
+    'طبيب عام',
+    'طبيب الأطفال',
+    'أخصائي قلب',
+    'أخصائي جلدية',
+    'أخصائي أعصاب',
+    'أخصائي عظام',
+    'أخصائي نساء وولادة',
+    'أخصائي عيون',
+    'طبيب أسنان',
+    'إختصاص آخر'
   ];
 }

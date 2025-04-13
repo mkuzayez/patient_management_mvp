@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:patient_management_app/blocs/patient/patient_bloc.dart';
@@ -47,7 +49,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       setState(() {
         _isLoadingRecords = false;
       });
-      _showErrorSnackBar('Failed to load records: ${e.toString()}');
+      _showErrorSnackBar('خطأ بتحميل السجلات، يرجى المحاولة مجددًا');
+      log('Failed to load records: ${e.toString()}');
     }
   }
 
@@ -73,10 +76,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         builder: (context, state) {
           final isLoading = state.status == Status.loading;
           final patient = state.selectedPatient;
-          
+
           return Scaffold(
             appBar: AppBar(
-              title: Text(isLoading ? 'Patient Details' : patient?.fullName ?? 'Patient Details'),
+              title: Text(isLoading ? 'بيانات المريض' : patient?.fullName ?? 'بيانات المريض'),
               actions: [
                 if (!isLoading && patient != null)
                   IconButton(
@@ -98,7 +101,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             body: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : patient == null
-                    ? const Center(child: Text('Patient not found'))
+                    ? const Center(child: Text('المريض غير موجود'))
                     : SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,12 +114,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Medical Records',
+                                    'السجلات الطبية',
                                     style: Theme.of(context).textTheme.titleLarge,
                                   ),
                                   ElevatedButton.icon(
                                     icon: const Icon(Icons.add),
-                                    label: const Text('Add Record'),
+                                    label: const Text('إضافة سجل'),
                                     onPressed: () {
                                       Navigator.push(
                                         context,
@@ -156,7 +159,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Personal Information',
+                        'المعلومات الشخصية',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
@@ -179,10 +182,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   _buildInfoRow('Gender', patient.gender),
                   _buildInfoRow('Area', patient.area),
                   _buildInfoRow('Mobile', patient.mobileNumber),
-                  if (patient.pastIllnesses.isNotEmpty)
-                    _buildInfoRow('Past Illnesses', patient.pastIllnesses),
-                  _buildInfoRow('Created', patient.createdAt),
-                  _buildInfoRow('Last Updated', patient.updatedAt),
+                  if (patient.pastIllnesses != null) _buildInfoRow('Past Illnesses', patient.pastIllnesses!),
+                  _buildInfoRow('Created', patient.createdAt.toString()),
+                  _buildInfoRow('Last Updated', patient.updatedAt.toString()),
                 ],
               ),
             ),
@@ -225,7 +227,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       return const Padding(
         padding: EdgeInsets.all(16.0),
         child: Center(
-          child: Text('No medical records found for this patient.'),
+          child: Text('لا يوجد سجلات طبية لهذا المريض.'),
         ),
       );
     }
@@ -239,9 +241,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: ListTile(
-            title: Text('Visit: ${record.issuedDate}'),
+            title: Text('تاريخ الزيارة: ${record.issuedDate}'),
             subtitle: Text(
-              'Doctor: ${record.doctorSpecialization} • Medicines: ${record.totalGivenMedicines}',
+              'الطبيب: ${record.doctorSpecialization} • الأدوية: ${record.totalGivenMedicines}',
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {

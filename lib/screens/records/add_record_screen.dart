@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:patient_management_app/blocs/base_state.dart';
@@ -84,14 +86,14 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Add Medicine'),
+              title: const Text('إضافة دواء'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     DropdownButtonFormField<Medicine>(
                       decoration: const InputDecoration(
-                        labelText: 'Select Medicine',
+                        labelText: 'اختر دواءً',
                       ),
                       items: medicines.map((Medicine medicine) {
                         return DropdownMenuItem<Medicine>(
@@ -111,7 +113,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       decoration: const InputDecoration(
-                        labelText: 'Dose',
+                        labelText: 'الجرعة',
                       ),
                       initialValue: dose,
                       onChanged: (value) {
@@ -121,7 +123,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        const Text('Quantity: '),
+                        const Text('الكمية: '),
                         IconButton(
                           icon: const Icon(Icons.remove),
                           onPressed: quantity > 1
@@ -151,7 +153,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text('Cancel'),
+                  child: const Text('إلغاء'),
                 ),
                 ElevatedButton(
                   onPressed: selectedMedicine == null
@@ -166,7 +168,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                           });
                           Navigator.pop(context);
                         },
-                  child: const Text('Add'),
+                  child: const Text('إضافة'),
                 ),
               ],
             );
@@ -184,7 +186,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
 
   Future<void> _saveRecord(BuildContext context) async {
     if (_selectedPatientId == null) {
-      _showErrorSnackBar('Please select a patient');
+      _showErrorSnackBar('يرجى اختيار مريض');
       return;
     }
 
@@ -239,7 +241,8 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
       setState(() {
         _isSaving = false;
       });
-      _showErrorSnackBar('Failed to save record: ${e.toString()}');
+      _showErrorSnackBar("خطأ بإنشاء السجل، حاول مجددًا");
+      log('Failed to save record: ${e.toString()}');
     }
   }
 
@@ -283,7 +286,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
           builder: (context) {
             return Scaffold(
               appBar: AppBar(
-                title: const Text('Add Medical Record'),
+                title: const Text('إضافة سجل صحي'),
               ),
               body: BlocBuilder<PatientBloc, PatientState>(
                 builder: (context, patientState) {
@@ -308,7 +311,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                               DropdownButtonFormField<int>(
                                 value: _selectedPatientId,
                                 decoration: const InputDecoration(
-                                  labelText: 'Select Patient',
+                                  labelText: 'اختر المريض',
                                   prefixIcon: Icon(Icons.person),
                                 ),
                                 items: patients.map((Patient patient) {
@@ -326,7 +329,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                       },
                                 validator: (value) {
                                   if (value == null) {
-                                    return 'Please select a patient';
+                                    return 'يرجى اختيار مريض';
                                   }
                                   return null;
                                 },
@@ -335,7 +338,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                               DropdownButtonFormField<String>(
                                 value: _doctorSpecialization,
                                 decoration: const InputDecoration(
-                                  labelText: 'Doctor Specialization',
+                                  labelText: 'تخصص الطبيب',
                                   prefixIcon: Icon(Icons.medical_services),
                                 ),
                                 items: AppConstants.doctorSpecializations.map((String specialization) {
@@ -356,7 +359,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                               TextFormField(
                                 controller: _vitalSignsController,
                                 decoration: const InputDecoration(
-                                  labelText: 'Vital Signs (Optional)',
+                                  labelText: 'المؤشرات الحيوية (اختياري)',
                                   prefixIcon: Icon(Icons.favorite),
                                 ),
                                 maxLines: 3,
@@ -372,7 +375,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                 onTap: () => _selectDate(context),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return 'Please select a date';
+                                    return 'يرجى اختيار تاريخ';
                                   }
                                   return null;
                                 },
@@ -382,13 +385,13 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Prescribed Medicines',
+                                    'الأدوية الموصوفة',
                                     style: Theme.of(context).textTheme.titleMedium,
                                   ),
                                   ElevatedButton.icon(
                                     onPressed: () => _addMedicine(medicines),
                                     icon: const Icon(Icons.add),
-                                    label: const Text('Add Medicine'),
+                                    label: const Text('إضافة دواء'),
                                   ),
                                 ],
                               ),
@@ -398,7 +401,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                       child: Padding(
                                         padding: EdgeInsets.all(16.0),
                                         child: Text(
-                                          'No medicines added yet. Click "Add Medicine" to prescribe medicines.',
+                                          'لا يوجد أدوية حاليًا. اضغط على "إضافة دواء" للاختيار',
                                           textAlign: TextAlign.center,
                                         ),
                                       ),
@@ -416,7 +419,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                           child: ListTile(
                                             title: Text(medicine.name),
                                             subtitle: Text(
-                                              'Dose: ${medicineData['dose']} • Qty: ${medicineData['quantity']}',
+                                              'الجرعة: ${medicineData['dose']} • الكمية: ${medicineData['quantity']}',
                                             ),
                                             trailing: IconButton(
                                               icon: const Icon(Icons.delete, color: Colors.red),
@@ -435,7 +438,7 @@ class _AddRecordScreenState extends State<AddRecordScreen> {
                                 child: _isSaving
                                     ? const CircularProgressIndicator(color: Colors.white)
                                     : const Text(
-                                        'Save Record',
+                                        'حفظ السجل',
                                         style: TextStyle(fontSize: 16),
                                       ),
                               ),

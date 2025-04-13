@@ -3,7 +3,7 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class ApiService {
   final Dio _dio = Dio();
-  final String baseUrl = 'http://8000-ix1z12det6kgatbqm8i1i-8a678df9.manus.computer/api';
+  final String baseUrl = 'https://bankaldawaa.gatara.org/api';
 
   ApiService() {
     _dio.options.connectTimeout = const Duration(seconds: 5);

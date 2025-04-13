@@ -26,8 +26,8 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
   final TextEditingController _mobileNumberController = TextEditingController();
   final TextEditingController _pastIllnessesController = TextEditingController();
   
-  String _gender = 'Male';
-  String _status = 'active';
+  String _gender = 'ذكر';
+  String _status = 'فعال';
   bool _isInitialized = false;
 
   @override
@@ -45,7 +45,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
     _gender = patient.gender;
     _areaController.text = patient.area;
     _mobileNumberController.text = patient.mobileNumber;
-    _pastIllnessesController.text = patient.pastIllnesses;
+    _pastIllnessesController.text = patient.pastIllnesses ?? "";
     _status = patient.status;
   }
 
@@ -106,7 +106,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
           
           return Scaffold(
             appBar: AppBar(
-              title: Text(isEditing ? 'Edit Patient' : 'Add Patient'),
+              title: Text(isEditing ? 'تعديل بيانات المريض' : 'إضافة مريض'),
             ),
             body: isLoading && !_isInitialized
                 ? const Center(child: CircularProgressIndicator())
@@ -125,7 +125,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter patient name';
+                                return 'يرجى إدخال اسم المريض';
                               }
                               return null;
                             },
@@ -134,19 +134,19 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           TextFormField(
                             controller: _ageController,
                             decoration: const InputDecoration(
-                              labelText: 'Age',
+                              labelText: 'العمر',
                               prefixIcon: Icon(Icons.calendar_today),
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter age';
+                                return 'يرجى إدخال العمر';
                               }
                               if (int.tryParse(value) == null) {
-                                return 'Please enter a valid number';
+                                return 'يرجى إدخال عمر صالح';
                               }
                               if (int.parse(value) < 0 || int.parse(value) > 120) {
-                                return 'Please enter a valid age (0-120)';
+                                return 'يرجى إدخال عمر صالح';
                               }
                               return null;
                             },
@@ -155,7 +155,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           DropdownButtonFormField<String>(
                             value: _gender,
                             decoration: const InputDecoration(
-                              labelText: 'Gender',
+                              labelText: 'الجنس',
                               prefixIcon: Icon(Icons.people),
                             ),
                             items: AppConstants.genderOptions.map((String gender) {
@@ -176,12 +176,12 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           TextFormField(
                             controller: _areaController,
                             decoration: const InputDecoration(
-                              labelText: 'Area',
+                              labelText: 'العنوان',
                               prefixIcon: Icon(Icons.location_on),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter area';
+                                return 'يرجى إدخال العنوان';
                               }
                               return null;
                             },
@@ -190,13 +190,13 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           TextFormField(
                             controller: _mobileNumberController,
                             decoration: const InputDecoration(
-                              labelText: 'Mobile Number',
+                              labelText: 'رقم الهاتف',
                               prefixIcon: Icon(Icons.phone),
                             ),
                             keyboardType: TextInputType.phone,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter mobile number';
+                                return 'يرجى إدخال رقم الهاتف';
                               }
                               return null;
                             },
@@ -205,7 +205,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           TextFormField(
                             controller: _pastIllnessesController,
                             decoration: const InputDecoration(
-                              labelText: 'Past Illnesses (Optional)',
+                              labelText: 'أمراض سابقة (اختياري)',
                               prefixIcon: Icon(Icons.medical_services),
                             ),
                             maxLines: 3,
@@ -214,7 +214,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           DropdownButtonFormField<String>(
                             value: _status,
                             decoration: const InputDecoration(
-                              labelText: 'Status',
+                              labelText: 'الحالة الإجتماعية',
                               prefixIcon: Icon(Icons.check_circle),
                             ),
                             items: AppConstants.patientStatusOptions.map((String status) {
@@ -267,7 +267,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                             child: Text(
-                              isEditing ? 'Update Patient' : 'Add Patient',
+                              isEditing ? 'تحديث بيانات المريض' : 'إضافة مريض',
                               style: const TextStyle(fontSize: 16),
                             ),
                           ),

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:patient_management_app/blocs/medicine/medicine_bloc.dart';
@@ -77,6 +79,7 @@ class _AddEditMedicineScreenState extends State<AddEditMedicineScreen> {
         listener: (context, state) {
           if (state.status == Status.failure && state.failure != null) {
             _showErrorSnackBar(state.failure!.message);
+            log(state.failure!.message);
           }
           
           if (state.status == Status.success) {
@@ -101,7 +104,7 @@ class _AddEditMedicineScreenState extends State<AddEditMedicineScreen> {
           
           return Scaffold(
             appBar: AppBar(
-              title: Text(isEditing ? 'Edit Medicine' : 'Add Medicine'),
+              title: Text(isEditing ? 'تعديل الدواء' : 'إضافة دواء'),
             ),
             body: isLoading && !_isInitialized
                 ? const Center(child: CircularProgressIndicator())
@@ -115,12 +118,12 @@ class _AddEditMedicineScreenState extends State<AddEditMedicineScreen> {
                           TextFormField(
                             controller: _nameController,
                             decoration: const InputDecoration(
-                              labelText: 'Medicine Name',
+                              labelText: 'اسم الدواء',
                               prefixIcon: Icon(Icons.medication),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter medicine name';
+                                return 'يرجى إدخال اسم الدواء';
                               }
                               return null;
                             },
@@ -134,7 +137,7 @@ class _AddEditMedicineScreenState extends State<AddEditMedicineScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter dose';
+                                return 'يرجى إدخال الجرعة';
                               }
                               return null;
                             },
@@ -143,7 +146,7 @@ class _AddEditMedicineScreenState extends State<AddEditMedicineScreen> {
                           TextFormField(
                             controller: _scientificNameController,
                             decoration: const InputDecoration(
-                              labelText: 'Scientific Name (Optional)',
+                              labelText: 'الاسم العلمي (اختياري)',
                               prefixIcon: Icon(Icons.science),
                             ),
                           ),
@@ -151,7 +154,7 @@ class _AddEditMedicineScreenState extends State<AddEditMedicineScreen> {
                           TextFormField(
                             controller: _companyController,
                             decoration: const InputDecoration(
-                              labelText: 'Company (Optional)',
+                              labelText: 'المصنّع (اختياري)',
                               prefixIcon: Icon(Icons.business),
                             ),
                           ),
@@ -159,19 +162,19 @@ class _AddEditMedicineScreenState extends State<AddEditMedicineScreen> {
                           TextFormField(
                             controller: _priceController,
                             decoration: const InputDecoration(
-                              labelText: 'Price',
+                              labelText: 'السعر',
                               prefixIcon: Icon(Icons.attach_money),
                             ),
                             keyboardType: TextInputType.number,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter price';
+                                return 'يرجى إدخال السعر';
                               }
                               if (double.tryParse(value) == null) {
-                                return 'Please enter a valid number';
+                                return 'ادخل رقمًا صالحًا';
                               }
                               if (double.parse(value) < 0) {
-                                return 'Price cannot be negative';
+                                return 'ادخل رقمًا صالحًا';
                               }
                               return null;
                             },
@@ -210,7 +213,7 @@ class _AddEditMedicineScreenState extends State<AddEditMedicineScreen> {
                               padding: const EdgeInsets.symmetric(vertical: 16),
                             ),
                             child: Text(
-                              isEditing ? 'Update Medicine' : 'Add Medicine',
+                              isEditing ? 'تحديث الدواء' : 'إضافة الدواء',
                               style: const TextStyle(fontSize: 16),
                             ),
                           ),

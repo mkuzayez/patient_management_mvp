@@ -6,7 +6,7 @@ class PatientService {
   
   Future<List<Patient>> getAllPatients() async {
     final response = await _apiService.get('patients/');
-    final List<dynamic> data = response.data;
+    final data = response.data['results'] as List<dynamic>;
     return data.map((json) => Patient.fromJson(json)).toList();
   }
   
@@ -17,7 +17,7 @@ class PatientService {
   
   Future<List<Patient>> searchPatients(String query) async {
     final response = await _apiService.get('patients/?search=$query');
-    final List<dynamic> data = response.data;
+    final data = response.data['results'] as List<dynamic>;
     return data.map((json) => Patient.fromJson(json)).toList();
   }
   

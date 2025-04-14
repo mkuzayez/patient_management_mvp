@@ -42,11 +42,11 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
   void _initializeFormWithPatient(Patient patient) {
     _fullNameController.text = patient.fullName;
     _ageController.text = patient.age.toString();
-    _gender = patient.gender;
-    _areaController.text = patient.area;
-    _mobileNumberController.text = patient.mobileNumber;
+    _gender = patient.gender ?? "";
+    _areaController.text = patient.area ?? "";
+    _mobileNumberController.text = patient.mobileNumber ?? "";
     _pastIllnessesController.text = patient.pastIllnesses ?? "";
-    _status = patient.status;
+    _status = patient.status ?? "";
   }
 
   @override
@@ -120,7 +120,7 @@ class _AddEditPatientScreenState extends State<AddEditPatientScreen> {
                           TextFormField(
                             controller: _fullNameController,
                             decoration: const InputDecoration(
-                              labelText: 'Full Name',
+                              labelText: 'الاسم الكامل',
                               prefixIcon: Icon(Icons.person),
                             ),
                             validator: (value) {

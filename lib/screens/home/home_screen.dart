@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:patient_management_app/config/constants.dart';
+import 'package:patient_management_app/screens/medicines/medicines_screen.dart';
+import 'package:patient_management_app/screens/records/records_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final Widget child;
-  
+
   const HomeScreen({super.key, required this.child});
 
   @override
@@ -12,6 +14,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int _currentIndex = 0; // Track the current index
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
     if (location.startsWith('/medicines')) {
@@ -24,28 +41,46 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _onItemTapped(int index, BuildContext context) {
+    setState(() {
+      _currentIndex = index;
+    });
+    _pageController.jumpToPage(index); // Jump to the selected page
     switch (index) {
       case 0:
-        context.go('/');
+        context.pushReplacement('/');
         break;
       case 1:
-        context.go('/medicines');
+        context.pushReplacement('/medicines');
         break;
       case 2:
-        context.go('/records');
+        context.pushReplacement('/records');
         break;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // ignore: unused_local_variable
     final int selectedIndex = _calculateSelectedIndex(context);
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppConstants.appName),
+        title: const Text(AppConstants.appName, style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
       ),
-      body: widget.child,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        children: [
+          widget.child,
+          const MedicinesScreen(),
+          const RecordsScreen(),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -61,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'السجلات',
           ),
         ],
-        currentIndex: selectedIndex,
+        currentIndex: _currentIndex,
         selectedItemColor: Theme.of(context).primaryColor,
         onTap: (index) => _onItemTapped(index, context),
       ),

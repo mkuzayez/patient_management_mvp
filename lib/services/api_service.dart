@@ -3,11 +3,11 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 class ApiService {
   final Dio _dio = Dio();
-  final String baseUrl = 'https://bankaldawaa.gatara.org/api';
+  final String baseUrl = 'http://apibankaldawaa.gatara.org/api';
 
   ApiService() {
-    _dio.options.connectTimeout = const Duration(seconds: 5);
-    _dio.options.receiveTimeout = const Duration(seconds: 3);
+    _dio.options.connectTimeout = const Duration(seconds: 30);
+    _dio.options.receiveTimeout = const Duration(seconds: 30);
     _dio.options.headers = {
       'Content-Type': 'application/json',
       'Accept': 'application/json',

@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:patient_management_app/blocs/base_state.dart';
@@ -7,6 +9,7 @@ import 'package:patient_management_app/blocs/patient/patient_state.dart';
 import 'package:patient_management_app/screens/patients/add_edit_patient_screen.dart';
 import 'package:patient_management_app/screens/patients/patient_detail_screen.dart';
 import 'package:patient_management_app/widgets/patient_card.dart';
+import 'package:throttling/throttling.dart';
 
 class PatientsScreen extends StatelessWidget {
   const PatientsScreen({super.key});
@@ -29,6 +32,7 @@ class _PatientsScreenContent extends StatefulWidget {
 
 class _PatientsScreenContentState extends State<_PatientsScreenContent> {
   String _searchQuery = '';
+  late Debouncing _debouncer;
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -40,12 +44,25 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _debouncer = Debouncing(duration: const Duration(milliseconds: 1000));
+  }
+
+  @override
+  void dispose() {
+    _debouncer.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocConsumer<PatientBloc, PatientState>(
         listener: (context, state) {
           if (state.status == Status.failure && state.failure != null) {
-            _showErrorSnackBar(state.failure!.message);
+            _showErrorSnackBar("خطأ بتحميل المرضى، يرجى المحاولة مجددًا");
+            log(state.failure!.message);
           }
         },
         builder: (context, state) {
@@ -63,48 +80,96 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
                     setState(() {
                       _searchQuery = value;
                     });
-                    if (value.isEmpty) {
-                      context.read<PatientBloc>().add(const PatientFetchAll());
-                    } else {
-                      context.read<PatientBloc>().add(PatientSearch(value));
-                    }
+
+                    _debouncer.debounce(() {
+                      if (value.isEmpty) {
+                        context.read<PatientBloc>().add(const PatientFetchAll());
+                      } else {
+                        context.read<PatientBloc>().add(PatientSearch(value));
+                      }
+                    });
                   },
                 ),
               ),
               Expanded(
-                child: state.status == Status.loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : state.patients.isEmpty
-                        ? Center(
-                            child: Text(
-                              _searchQuery.isEmpty ? 'لا يوجد مرضى' : 'لا يوجد مرضى يطابقون "$_searchQuery"',
-                              style: Theme.of(context).textTheme.titleMedium,
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    context.read<PatientBloc>().add(const PatientFetchAll());
+                  },
+                  child: Builder(
+                    builder: (context) {
+                      switch (state.status) {
+                        case Status.loading:
+                          return const Center(child: CircularProgressIndicator());
+
+                        case Status.failure:
+                          return SizedBox(
+                            child: ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                Center(
+                                  child: Text(
+                                    "خطأ بالإتصال",
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                ),
+                                Center(
+                                  child: TextButton(
+                                      onPressed: () {
+                                        context.read<PatientBloc>().add(const PatientFetchAll());
+                                      },
+                                      child: const Text("المحاولة مجددًا")),
+                                )
+                              ],
                             ),
-                          )
-                        : RefreshIndicator(
-                            onRefresh: () async {
-                              context.read<PatientBloc>().add(const PatientFetchAll());
+                          );
+
+                        case Status.success:
+                          if (state.patients.isEmpty) {
+                            return ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              children: [
+                                SizedBox(
+                                  height: MediaQuery.sizeOf(context).height * 0.5,
+                                  child: Center(
+                                    child: Text(
+                                      _searchQuery.isEmpty ? 'لا يوجد مرضى' : 'لا يوجد مرضى يطابقون "$_searchQuery"',
+                                      style: Theme.of(context).textTheme.titleMedium,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+
+                          return ListView.builder(
+                            itemCount: state.patients.length,
+                            itemBuilder: (context, index) {
+                              final patient = state.patients[index];
+                              return PatientCard(
+                                patient: patient,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PatientDetailScreen(patientId: patient.id!),
+                                    ),
+                                  ).then((_) {
+                                    if (context.mounted) {
+                                      context.read<PatientBloc>().add(const PatientFetchAll());
+                                    }
+                                  });
+                                },
+                              );
                             },
-                            child: ListView.builder(
-                              itemCount: state.patients.length,
-                              itemBuilder: (context, index) {
-                                final patient = state.patients[index];
-                                return PatientCard(
-                                  patient: patient,
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PatientDetailScreen(patientId: patient.id!),
-                                      ),
-                                    ).then((_) {
-                                      if (context.mounted) context.read<PatientBloc>().add(const PatientFetchAll());
-                                    });
-                                  },
-                                );
-                              },
-                            ),
-                          ),
+                          );
+
+                        case Status.initial:
+                          return const SizedBox(); // empty state or placeholder
+                      }
+                    },
+                  ),
+                ),
               ),
             ],
           );
@@ -118,7 +183,9 @@ class _PatientsScreenContentState extends State<_PatientsScreenContent> {
               builder: (context) => const AddEditPatientScreen(),
             ),
           ).then((_) {
-            if (context.mounted) context.read<PatientBloc>().add(const PatientFetchAll());
+            if (context.mounted) {
+              context.read<PatientBloc>().add(const PatientFetchAll());
+            }
           });
         },
         child: const Icon(Icons.add),

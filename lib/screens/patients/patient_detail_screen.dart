@@ -31,7 +31,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _loadRecords();
+    // _loadRecords();
   }
 
   Future<void> _loadRecords() async {
@@ -164,27 +164,27 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                       ),
-                      Container(
+                      if (patient.status != null) Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: patient.status == 'active' ? Colors.green : Colors.grey,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          patient.status,
+                          patient.status!.toUpperCase(),
                           style: const TextStyle(color: Colors.white),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildInfoRow('Age', '${patient.age} years'),
-                  _buildInfoRow('Gender', patient.gender),
-                  _buildInfoRow('Area', patient.area),
-                  _buildInfoRow('Mobile', patient.mobileNumber),
-                  if (patient.pastIllnesses != null) _buildInfoRow('Past Illnesses', patient.pastIllnesses!),
-                  _buildInfoRow('Created', patient.createdAt.toString()),
-                  _buildInfoRow('Last Updated', patient.updatedAt.toString()),
+                  _buildInfoRow('العمر', '${patient.age} سنة'),
+                  _buildInfoRow('الجنس', patient.gender == 'male' ? 'ذكر' : (patient.gender == 'female' ? 'أنثى' : "")),
+                  if (patient.area != null) _buildInfoRow('العنوان', patient.area!),
+                  if (patient.mobileNumber != null) _buildInfoRow('رقم الهاتف', patient.mobileNumber!),
+                  if (patient.pastIllnesses != null) _buildInfoRow('أمراض سابقة', patient.pastIllnesses!),
+                  // _buildInfoRow('Created', patient.createdAt.toString()),
+                  // _buildInfoRow('Last Updated', patient.updatedAt.toString()),
                 ],
               ),
             ),
@@ -201,7 +201,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            width: 100,
+            width: 120,
             child: Text(
               '$label:',
               style: const TextStyle(
@@ -210,7 +210,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               ),
             ),
           ),
-          Expanded(
+          Flexible(
             child: Text(value),
           ),
         ],

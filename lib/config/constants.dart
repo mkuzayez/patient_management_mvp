@@ -37,3 +37,8 @@ class AppConstants {
     'إختصاص آخر'
   ];
 }
+
+class CacheKeys {
+
+  static const patients = 'patients';
+}

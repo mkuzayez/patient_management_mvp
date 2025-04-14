@@ -4,93 +4,95 @@ import 'package:patient_management_app/models/patient.dart';
 class PatientCard extends StatelessWidget {
   final Patient patient;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
   const PatientCard({
     super.key,
     required this.patient,
     required this.onTap,
+    this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: InkWell(
-        onTap: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: Card(
+        color: Colors.white,
+        shadowColor: Colors.black,
+        elevation: 4,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Top Row: Name + Buttons
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
                     child: Text(
                       patient.fullName,
-                      style: Theme.of(context).textTheme.titleLarge,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: patient.status == 'active' ? Colors.green : Colors.grey,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      patient.status,
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.person, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text('${patient.age} سنة, ${patient.gender}'),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      patient.area,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
+
               const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.phone, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(patient.mobileNumber),
-                ],
-              ),
-              const SizedBox(height: 8),
+
+              // Subtitle: Age + Area
+              Text('${patient.age} عام • ${patient.area ?? "-"}', style: Theme.of(context).textTheme.bodySmall!.copyWith(color: Colors.grey[600])),
+
+              const SizedBox(height: 16),
+
+              // Bottom Row: Info Cards
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'السجلات: ${patient.recordsCount}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  _infoBox(title: 'السجلات الطبية', value: '${patient.recordsCount}'),
+                  _infoBox(title: 'الزيارة الأخيرة', value: patient.lastVisit ?? '-'),
+                  _infoBox(
+                    title: 'الحالة',
+                    value: (patient.status ?? '').toUpperCase(),
+                    color: patient.status == 'active' ? Colors.green : Colors.grey,
                   ),
-                  if (patient.lastVisit != null)
-                    Text(
-                      'آخر زيارة: ${patient.lastVisit}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
                 ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _infoBox({required String title, required String value, Color? color}) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: color ?? Colors.black,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

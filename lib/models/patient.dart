@@ -1,28 +1,28 @@
 class Patient {
-  final int? id;
-  final String fullName;
-  final int age;
-  final String gender;
-  final String area;
-  final String mobileNumber;
-  final String pastIllnesses;
-  final String status;
-  final String createdAt;
-  final String updatedAt;
-  final int recordsCount;
-  final String? lastVisit;
+  int? id;
+  String fullName;
+  int age;
+  String? gender;
+  String? area;
+  String? mobileNumber;
+  String? pastIllnesses;
+  String? status;
+  // DateTime? createdAt;
+  // DateTime? updatedAt;
+  int recordsCount;
+  String? lastVisit;
 
   Patient({
     this.id,
     required this.fullName,
     required this.age,
-    required this.gender,
-    required this.area,
-    required this.mobileNumber,
-    this.pastIllnesses = '',
-    this.status = 'active',
-    required this.createdAt,
-    required this.updatedAt,
+    this.gender,
+    this.area,
+    this.mobileNumber,
+    this.pastIllnesses,
+    this.status,
+    // this.createdAt,
+    // this.updatedAt,
     this.recordsCount = 0,
     this.lastVisit,
   });
@@ -37,8 +37,8 @@ class Patient {
       mobileNumber: json['mobile_number'],
       pastIllnesses: json['past_illnesses'] ?? '',
       status: json['status'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
+      // createdAt: json['created_at'],
+      // updatedAt: json['updated_at'],
       recordsCount: json['records_count'] ?? 0,
       lastVisit: json['last_visit'],
     );
@@ -54,8 +54,8 @@ class Patient {
       'mobile_number': mobileNumber,
       'past_illnesses': pastIllnesses,
       'status': status,
-      'created_at': createdAt,
-      'updated_at': updatedAt,
+      // 'created_at': createdAt,
+      // 'updated_at': updatedAt,
       'records_count': recordsCount,
       'last_visit': lastVisit,
     };

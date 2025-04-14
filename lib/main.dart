@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:patient_management_app/config/router.dart';
-import 'package:patient_management_app/screens/authentication/login_screen.dart';
 import 'package:patient_management_app/utils/bloc_observer.dart';
 import 'package:patient_management_app/utils/cache_manager.dart';
 import 'package:patient_management_app/utils/shared_prefrences_helper.dart';
@@ -21,8 +20,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-home: LoginScreen(),
+    return MaterialApp.router(
       title: 'Patient Management',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue, surface: Colors.white),
@@ -38,7 +36,7 @@ home: LoginScreen(),
           ),
         );
       },
-      // routerConfig: AppRouter.router,
+      routerConfig: AppRouter.router,
     );
   }
 }
